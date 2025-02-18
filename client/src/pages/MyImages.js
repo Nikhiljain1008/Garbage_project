@@ -4,6 +4,7 @@ import axios from "axios";
 const MyImages = () => {
     const [images, setImages] = useState([]);
 
+    // Fetch images on component mount
     useEffect(() => {
         const fetchImages = async () => {
             try {
@@ -28,12 +29,13 @@ const MyImages = () => {
                 {images.length === 0 ? (
                     <p>No images uploaded yet.</p>
                 ) : (
-                    images.map((img, index) => (
-                        <div key={index} style={{ border: "1px solid #ddd", padding: "10px", borderRadius: "8px" }}>
+                    images.map((img) => (
+                        <div key={img._id} style={{ border: "1px solid #ddd", padding: "10px", borderRadius: "8px" }}>
                             <img src={img.imageUrl} alt="Uploaded" style={{ width: "100%", borderRadius: "8px" }} />
                             <p><strong>📍 Location:</strong> {img.location}</p>
                             <p><strong>🗑️ Garbage Probability:</strong> {img.garbageProbability.toFixed(2)}%</p>
                             {img.description && <p><strong>📝 Description:</strong> {img.description}</p>}
+                            <p><strong>✅ Status:</strong> {img.status}</p>
                         </div>
                     ))
                 )}

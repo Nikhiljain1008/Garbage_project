@@ -4,6 +4,7 @@ const axios = require("axios");
 const fs = require("fs");
 const FormData = require("form-data");
 
+
 exports.uploadImage = async (req, res) => {
     console.log("✅ Request received in imageController.js");
     console.log("📩 Request Body:", req.body);
@@ -18,8 +19,9 @@ exports.uploadImage = async (req, res) => {
         return res.status(400).json({ message: "No file uploaded" });
     }
 
-    const imageUrl = `server/uploads/${req.file.filename}`;
+    const imageUrl = `/uploads/${req.file.filename}`;
     const filePath = req.file.path;
+    
 
     try {
         console.log("🚀 Sending image to Flask API for classification...");
@@ -54,7 +56,8 @@ exports.uploadImage = async (req, res) => {
             location,
             description,
             garbageProbability: classification.garbage_probability,
-            cleanStreetProbability: classification.clean_street_probability
+            cleanStreetProbability: classification.clean_street_probability,
+            status: "pending" // Set the default status to "pending"
         });
 
         await user.save();
@@ -69,22 +72,23 @@ exports.uploadImage = async (req, res) => {
     }
 };
 
+
 exports.getUserImages = async (req, res) => {
     console.log("📸 Fetching images for user:", req.user._id);
-
     try {
         const user = await User.findById(req.user._id);
         if (!user) {
             console.log("🚨 User not found");
             return res.status(404).json({ message: "User not found" });
         }
-
-        // Extract only necessary fields from each image
+        
+        // Extract necessary fields from each image, including the status
         const images = user.images.map(img => ({
             imageUrl: `${req.protocol}://${req.get("host")}${img.imageUrl}`, 
             garbageProbability: img.garbageProbability,
             location: img.location,
-            description: img.description
+            description: img.description,
+            status: img.status // Include status field here
         }));
 
         console.log(images);
@@ -95,3 +99,8 @@ exports.getUserImages = async (req, res) => {
     }
 };
 
+
+
+//server\uploads\1739611695219-106.jpg
+
+//server\uploads\1739899497403-img_78.jpg
