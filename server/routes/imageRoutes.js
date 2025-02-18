@@ -1,6 +1,6 @@
 const express = require("express");
 const multer = require("multer");
-const { uploadImage } = require("../controllers/imageControllers");
+const { uploadImage, getUserImages } = require("../controllers/imageControllers"); // ✅ Import getUserImages
 const authMiddleware = require("../middleware/authMiddleware");
 
 const router = express.Router();
@@ -21,11 +21,14 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// ✅ Route to handle image upload (Now with authMiddleware)
+// ✅ Route to handle image upload
 router.post("/upload", authMiddleware, upload.single("image"), (req, res, next) => {
     console.log("📥 Image upload request received");
     console.log("🔄 Passing control to uploadImage controller...");
     next();
 }, uploadImage);
+
+// ✅ Route to fetch user's uploaded images
+router.get("/my-images", authMiddleware, getUserImages); // ✅ Now getUserImages is defined
 
 module.exports = router;

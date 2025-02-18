@@ -18,7 +18,7 @@ exports.uploadImage = async (req, res) => {
         return res.status(400).json({ message: "No file uploaded" });
     }
 
-    const imageUrl = `/uploads/${req.file.filename}`;
+    const imageUrl = `server/uploads/${req.file.filename}`;
     const filePath = req.file.path;
 
     try {
@@ -32,6 +32,13 @@ exports.uploadImage = async (req, res) => {
         const classification = flaskResponse.data;
 
         console.log("🧪 Flask API Response:", classification);
+
+        // Check if garbage probability is high enough
+        if (classification.garbage_probability < 50) { // Adjust threshold if needed
+            console.log("🟢 Image is not classified as garbage. Deleting the file...");
+            fs.unlinkSync(filePath); // Remove image from uploads folder
+            return res.status(400).json({ message: "Image does not contain garbage. Not stored." });
+        }
 
         // Find user in MongoDB
         const user = await User.findById(userId);
@@ -54,11 +61,6 @@ exports.uploadImage = async (req, res) => {
 
         console.log("✅ Image data saved successfully in user profile");
 
-        // Delete the image after processing
-        fs.unlink(filePath, (err) => {
-            if (err) console.error("⚠️ Error deleting file:", err);
-        });
-
         res.status(201).json({ message: "Image uploaded successfully", classification });
 
     } catch (error) {
@@ -66,3 +68,30 @@ exports.uploadImage = async (req, res) => {
         res.status(500).json({ message: "Internal server error." });
     }
 };
+
+exports.getUserImages = async (req, res) => {
+    console.log("📸 Fetching images for user:", req.user._id);
+
+    try {
+        const user = await User.findById(req.user._id);
+        if (!user) {
+            console.log("🚨 User not found");
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        // Extract only necessary fields from each image
+        const images = user.images.map(img => ({
+            imageUrl: `${req.protocol}://${req.get("host")}${img.imageUrl}`, 
+            garbageProbability: img.garbageProbability,
+            location: img.location,
+            description: img.description
+        }));
+
+        console.log(images);
+        res.status(200).json({ images });
+    } catch (error) {
+        console.error("❌ Error fetching images:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
