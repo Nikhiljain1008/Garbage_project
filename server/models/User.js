@@ -1,24 +1,23 @@
 const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema({
-    name: String,
-    email: String,
-    password: String,
-    role: { type: String, default: "user" },
-    images: [
-        {
-            imageUrl: String,
-            location: String,
-            description: String,
-            garbageProbability: Number,
-            cleanStreetProbability: Number,
-            status: {
-                type: String,
-                default: "pending" // Default value is "pending"
-            },
-            uploadedAt: { type: Date, default: Date.now }
-        }
-    ]
-});
+  name: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  role: { type: String, default: "citizen" },
+  images: { 
+    type: [
+      {
+        imageUrl: { type: String, required: true },
+        location: { type: String },
+        description: { type: String },
+        garbageProbability: { type: Number },
+        cleanStreetProbability: { type: Number },
+        status: { type: String }
+      }
+    ],
+    default: [] 
+  }
+}, { timestamps: true });
 
 module.exports = mongoose.model("User", userSchema);

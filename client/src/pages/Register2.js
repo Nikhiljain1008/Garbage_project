@@ -1,13 +1,13 @@
-// src/pages/Register.js
+// src/pages/GovRegister.js
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 
-const Register = () => {
+const GovRegister = () => {
     const navigate = useNavigate();
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState({
-        role: 'user', // Default role set to "user"
+        role: 'CSI', // Default role
         name: '',
         email: '',
         password: '',
@@ -27,12 +27,12 @@ const Register = () => {
         try {
             const res = await axios.post('http://localhost:5000/api/auth/send-otp', {
                 email: formData.email,
-                role: formData.role, // Sending default role "user"
+                role: formData.role, // Include selected role
             });
             setMessage(res.data.message);
             setStep(2);
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to send OTP');
+            setError(err.response?.data?.message || 'Failed to send OTP.');
         }
     };
 
@@ -57,7 +57,7 @@ const Register = () => {
         e.preventDefault();
         setError('');
         try {
-            const res = await axios.post('http://localhost:5000/api/auth/register', formData);
+            const res = await axios.post('http://localhost:5000/api/govEmployees/register2', formData);
             setMessage(res.data.message);
             navigate('/login');
         } catch (err) {
@@ -68,13 +68,31 @@ const Register = () => {
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-500 to-green-400 flex items-center justify-center p-6">
             <div className="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full">
-                <h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">Register</h1>
+                <h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">Gov Employee Register</h1>
 
                 {error && <div className="mb-4 text-center text-red-600 font-medium">{error}</div>}
                 {message && <div className="mb-4 text-center text-green-600 font-medium">{message}</div>}
 
                 {step === 1 && (
                     <form onSubmit={handleSendOTP} className="space-y-4">
+                        {/* Role Selection Dropdown */}
+                        <div>
+                            <label htmlFor="role" className="block text-gray-700 mb-1">Select Role</label>
+                            <select
+                                id="role"
+                                name="role"
+                                value={formData.role}
+                                onChange={handleChange}
+                                className="w-full border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                                <option value="CSI">CSI</option>
+                                <option value="DSI">DSI</option>
+                                <option value="SI">SI</option>
+                                <option value="Muqaadams">Muqaadams</option>
+                                <option value="Workers">Workers</option>
+                            </select>
+                        </div>
+
                         <div>
                             <label htmlFor="name" className="block text-gray-700 mb-1">Name</label>
                             <input
@@ -159,4 +177,4 @@ const Register = () => {
     );
 };
 
-export default Register;
+export default GovRegister;

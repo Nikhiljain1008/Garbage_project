@@ -33,7 +33,13 @@ export const LandingPage = () => {
                         to="/register"
                         className="px-8 py-3 bg-green-600 text-white font-semibold rounded-full shadow-md transition-all duration-300 transform hover:scale-105 hover:bg-green-700"
                     >
-                        Register
+                        Citizen
+                    </Link>
+                    <Link
+                        to="/register2"
+                        className="px-8 py-3 bg-green-600 text-white font-semibold rounded-full shadow-md transition-all duration-300 transform hover:scale-105 hover:bg-green-700"
+                    >
+                        Gov Employee
                     </Link>
                 </div>
             </motion.div>
