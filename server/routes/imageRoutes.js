@@ -6,22 +6,24 @@ const authMiddleware = require("../middleware/authMiddleware");
 const router = express.Router();
 console.log("📌 imageRoutes.js loaded");
 
-// Configure multer for file storage
+// Multer storage configuration
 const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, "uploads/");
-    },
-    filename: (req, file, cb) => {
-        const filename = Date.now() + "-" + file.originalname;
-        cb(null, filename);
-    }
+  destination: (req, file, cb) => {
+    console.log("📂 Storing file in 'uploads/' directory");
+    cb(null, "uploads/");
+  },
+  filename: (req, file, cb) => {
+    const filename = Date.now() + "-" + file.originalname;
+    console.log("🖼 Generated filename:", filename);
+    cb(null, filename);
+  }
 });
 const upload = multer({ storage });
 
-// Route to upload an image
+// Route to handle image upload
 router.post("/upload", authMiddleware, upload.single("image"), uploadImage);
 
-// Route to fetch a user's images
+// Route to fetch a user's complaints
 router.get("/my-images", authMiddleware, getUserImages);
 
 module.exports = router;

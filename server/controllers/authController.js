@@ -1,75 +1,66 @@
+// controllers/authController.js
 const User = require("../models/User");
-const sendOTP = require("../utils/mailer"); // Import mailer function
-const { ALLOWED_GOV_EMAILS } = require("../config");
+const GovEmployee = require("../models/GovEmployee");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const sendOTP = require("../utils/mailer"); // Ensure this file exists
 
-const otpStore = {}; // Temporary store for OTPs
+const otpStore = {};
 
-const sendOtp = async (req, res) => {
-<<<<<<< HEAD
+// Generate a 6-digit OTP
+function generateOtp() {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+exports.sendOtp = async (req, res) => {
   const { email, role } = req.body;
-  
   if (!email) return res.status(400).json({ message: "Email is required" });
   
-  // For government employees (non-citizens), verify that the email is authorized
-  if (role && role.toLowerCase() !== "citizen") {
-    if (!ALLOWED_GOV_EMAILS.includes(email)) {
-      return res.status(401).json({ message: "Email is not authorized for government registration" });
-    }
-  }
+  // If role is provided and isn't citizen, you might check if the email is allowed (if needed)
+  // (Assuming you have a config for allowed emails)
+  // if (role && role.toLowerCase() !== "citizen") { ... }
   
-  // Generate a 6-digit OTP
-  const otp = Math.floor(100000 + Math.random() * 900000);
-  
-  // Store OTP for 5 minutes
-  otpStore[email] = { otp, expiresAt: Date.now() + 300000 };
-  
-  // Send OTP via email using your mailer function
-  await sendOTP(email, otp);
-  
+  const otp = generateOtp();
+  otpStore[email] = { otp, expiresAt: Date.now() + 300000 }; // OTP valid for 5 minutes
+
+  await sendOTP(email, otp); // Send OTP via email (ensure this function exists)
   res.status(200).json({ message: "OTP sent successfully" });
-=======
-
-    const { email } = req.body;
-    if (!email) return res.status(400).json({ message: "Email is required" });
-    const otp = Math.floor(100000 + Math.random() * 900000); // Generate 6-digit OTP
-
-    otpStore[email] = { otp, expiresAt: Date.now() + 300000 }; // Store OTP for 5 min
-    await sendOTP(email, otp); // Send OTP via email
-    res.status(200).json({ message: "OTP sent successfully" });
-
->>>>>>> 3b105881638c2af7e6a3b860e3db1a08a7ca4bff
 };
 
-
-
-const verifyOtp = async (req, res) => {
-<<<<<<< HEAD
+exports.verifyOtp = async (req, res) => {
   const { email, otp } = req.body;
-  
   if (!otpStore[email] || otpStore[email].expiresAt < Date.now()) {
     return res.status(400).json({ message: "OTP expired or invalid" });
   }
-  
-  if (otpStore[email].otp != otp) {
+  if (otpStore[email].otp !== otp) {
     return res.status(400).json({ message: "Invalid OTP" });
   }
-  
-  delete otpStore[email]; // Remove OTP after successful verification
-  
+  delete otpStore[email];
   res.status(200).json({ message: "OTP verified successfully" });
-=======
-
-    const { email, otp } = req.body;
-    if (!otpStore[email] || otpStore[email].expiresAt < Date.now()) {
-        return res.status(400).json({ message: "OTP expired or invalid" });
-    }
-    if (otpStore[email].otp != otp) {
-        return res.status(400).json({ message: "Invalid OTP" });
-    }
-    delete otpStore[email]; // Remove OTP after successful verification
-    res.status(200).json({ message: "OTP verified successfully" });
-
->>>>>>> 3b105881638c2af7e6a3b860e3db1a08a7ca4bff
 };
 
-module.exports = { sendOtp, verifyOtp };
+exports.loginUnified = async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    let user = await User.findOne({ email });
+    if (user) {
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) return res.status(401).json({ message: "Invalid credentials" });
+      const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
+      return res.json({ token, role: user.role, user });
+    }
+
+    let govEmployee = await GovEmployee.findOne({ email });
+    if (govEmployee) {
+      const isMatch = await bcrypt.compare(password, govEmployee.password);
+      if (!isMatch) return res.status(401).json({ message: "Invalid credentials" });
+      const token = jwt.sign({ id: govEmployee._id, role: govEmployee.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
+      return res.json({ token, role: govEmployee.role, user: govEmployee });
+    }
+
+    return res.status(401).json({ message: "Invalid credentials" });
+  } catch (error) {
+    console.error("Unified login error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};

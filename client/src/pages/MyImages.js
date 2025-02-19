@@ -1,47 +1,42 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
+// src/pages/MyImages.js
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 
 const MyImages = () => {
-    const [images, setImages] = useState([]);
+  const [complaints, setComplaints] = useState([]);
+  const [error, setError] = useState('');
 
-    // Fetch images on component mount
-    useEffect(() => {
-        const fetchImages = async () => {
-            try {
-                const token = localStorage.getItem("token");
-                const response = await axios.get("http://localhost:5000/api/images/my-images", {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+  useEffect(() => {
+    const fetchComplaints = async () => {
+      try {
+        const res = await axios.get("http://localhost:5000/api/images/my-images", {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        setComplaints(res.data.complaints || []);
+      } catch (err) {
+        setError(err.response?.data?.message || 'Failed to fetch complaints');
+      }
+    };
+    fetchComplaints();
+  }, []);
 
-                setImages(response.data.images);
-            } catch (error) {
-                console.error("❌ Error fetching images:", error);
-            }
-        };
-
-        fetchImages();
-    }, []);
-
-    return (
-        <div>
-            <h2>📷 My Uploaded Images</h2>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "20px" }}>
-                {images.length === 0 ? (
-                    <p>No images uploaded yet.</p>
-                ) : (
-                    images.map((img) => (
-                        <div key={img._id} style={{ border: "1px solid #ddd", padding: "10px", borderRadius: "8px" }}>
-                            <img src={img.imageUrl} alt="Uploaded" style={{ width: "100%", borderRadius: "8px" }} />
-                            <p><strong>📍 Location:</strong> {img.location}</p>
-                            <p><strong>🗑️ Garbage Probability:</strong> {img.garbageProbability.toFixed(2)}%</p>
-                            {img.description && <p><strong>📝 Description:</strong> {img.description}</p>}
-                            <p><strong>✅ Status:</strong> {img.status}</p>
-                        </div>
-                    ))
-                )}
-            </div>
-        </div>
-    );
+  return (
+    <div>
+      {error && <div style={{ color: "red" }}>{error}</div>}
+      {complaints.length > 0 ? (
+        complaints.map((complaint, index) => (
+          <div key={index}>
+            <img src={complaint.imageUrl} alt={`Complaint ${index}`} style={{ width: '200px' }} />
+            <p>Status: {complaint.status}</p>
+            <p>Prediction: {complaint.flaskData.prediction}</p>
+            <p>Garbage Probability: {complaint.flaskData.garbage_probability.toFixed(2)}%</p>
+          </div>
+        ))
+      ) : (
+        <div>No complaints found</div>
+      )}
+    </div>
+  );
 };
 
 export default MyImages;

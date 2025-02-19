@@ -2,11 +2,11 @@ import json
 from shapely.geometry import shape, Point
 
 # Load Pune Ward GeoJSON file
-with open(r"C:\Users\91738\Desktop\garbage_reporting_project\Map-Operation\Pune\pune-electoral-wards-2022.geojson", "r", encoding="utf-8") as f:
+with open(r"S:\sem6\hackathon\k2\Garbage_project\Map-Operation\Pune\pune-electoral-wards-2022.geojson", "r", encoding="utf-8") as f:
     wards_geojson = json.load(f)
 
 # Load Muqqadam GeoJSON file
-with open(r"C:\Users\91738\Desktop\garbage_reporting_project\Map-Operation\Sukhsagar.geojson", "r", encoding="utf-8") as f:
+with open(r"S:\sem6\hackathon\k2\Garbage_project\Map-Operation\Sukhsagar.geojson", "r", encoding="utf-8") as f:
     muqqadam_geojson = json.load(f)
 
 # Define the coordinate to check
