@@ -4,15 +4,14 @@ const axios = require("axios");
 const fs = require("fs");
 const FormData = require("form-data");
 
-
 exports.uploadImage = async (req, res) => {
     console.log("✅ Request received in imageController.js");
     console.log("📩 Request Body:", req.body);
     console.log("🖼 Uploaded File:", req.file);
     console.log("👤 User Object:", req.user);
 
-    const { location, description } = req.body;
-    const userId = req.user?._id; // Ensure this is a valid ID
+    const { location, description, latitude, longitude } = req.body;
+    const userId = req.user?._id;
 
     if (!req.file) {
         console.log("🚨 No file uploaded");
@@ -22,46 +21,43 @@ exports.uploadImage = async (req, res) => {
     const imageUrl = `/uploads/${req.file.filename}`;
     const filePath = req.file.path;
     
-
     try {
-        console.log("🚀 Sending image to Flask API for classification...");
+        console.log("🚀 Sending image & coordinates to Flask API for classification...");
         const form = new FormData();
         form.append("image", fs.createReadStream(filePath));
+        form.append("latitude", latitude);
+        form.append("longitude", longitude);
 
         const flaskResponse = await axios.post("http://127.0.0.1:5001/predict", form, {
             headers: { ...form.getHeaders() }
         });
-        const classification = flaskResponse.data;
 
+        const classification = flaskResponse.data;
         console.log("🧪 Flask API Response:", classification);
 
-        // Check if garbage probability is high enough
-        if (classification.garbage_probability < 50) { // Adjust threshold if needed
+        if (classification.garbage_probability < 50) { 
             console.log("🟢 Image is not classified as garbage. Deleting the file...");
-            fs.unlinkSync(filePath); // Remove image from uploads folder
+            fs.unlinkSync(filePath);
             return res.status(400).json({ message: "Image does not contain garbage. Not stored." });
         }
 
-        // Find user in MongoDB
         const user = await User.findById(userId);
         if (!user) {
             console.log("🚨 User not found in DB:", userId);
-            fs.unlinkSync(filePath); // Clean up file
+            fs.unlinkSync(filePath);
             return res.status(404).json({ message: "User not found" });
         }
 
-        // Store image details in the user object
         user.images.push({
             imageUrl,
             location,
             description,
             garbageProbability: classification.garbage_probability,
             cleanStreetProbability: classification.clean_street_probability,
-            status: "pending" // Set the default status to "pending"
+            status: "pending"
         });
 
         await user.save();
-
         console.log("✅ Image data saved successfully in user profile");
 
         res.status(201).json({ message: "Image uploaded successfully", classification });
@@ -71,7 +67,6 @@ exports.uploadImage = async (req, res) => {
         res.status(500).json({ message: "Internal server error." });
     }
 };
-
 
 exports.getUserImages = async (req, res) => {
     console.log("📸 Fetching images for user:", req.user._id);
