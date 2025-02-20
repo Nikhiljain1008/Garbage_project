@@ -105,17 +105,21 @@ const Complaint = require("../models/Complaint");
 // 	}
 // };
 // controllers/complaintController.js
+// controllers/complaintController.js
 exports.getSiComplaints = async (req, res) => {
   try {
-    // Assuming the SI's identifier (e.g., "SI1") is stored in req.user.identifier
+    // Assume the SI's unique identifier and ward are stored in req.user
     const siIdentifier = req.user.identifier;
-    // Fetch complaints for this SI; adjust the query as needed.
+    const siWard = req.user.ward; // Ensure this matches the type of flaskData.ward_number (e.g., Number)
+
+    // Fetch complaints where both the SI identifier and ward match and status is "pending"
     const complaints = await Complaint.find({
       "flaskData.SI_no": siIdentifier,
+      "flaskData.ward_number": Number(siWard),
       status: "pending"
     });
-    
-    // Convert relative image URLs to full URLs
+
+    // Transform each complaint's imageUrl from a relative path to a full URL
     const transformedComplaints = complaints.map(c => {
       const obj = c.toObject();
       obj.imageUrl = `${req.protocol}://${req.get("host")}${obj.imageUrl}`;
@@ -128,6 +132,7 @@ exports.getSiComplaints = async (req, res) => {
     res.status(500).json({ message: "Error fetching complaints", error: error.message });
   }
 };
+
 
 
 // SI: Forward a complaint to a Muqaddam

@@ -5,6 +5,6 @@ const govEmployeeController = require("../controllers/govEmployeeController");
 
 router.post("/register2", govEmployeeController.registerGovEmployee);
 
-router.get("/muqaddams", govEmployeeController.getMuqaddams);
+router.get("/muqaddams", govEmployeeController.getMuqaddamsBySI);
 
 module.exports = router;

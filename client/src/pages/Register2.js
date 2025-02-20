@@ -7,19 +7,30 @@ const GovRegister = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
-    role: 'CSI', // Default role
+    role: 'CSI', // Default role; if changed to "muqaddam", we'll redirect
     name: '',
     email: '',
     password: '',
-    identifier: '', // New field for unique identifier
-    ward: ''        // Optional field if applicable
+    identifier: '',
+    ward: ''
   });
   const [otp, setOtp] = useState('');
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
 
+  // Handle changes for most fields
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  // Handle role selection change
+  const handleRoleChange = (e) => {
+    const selectedRole = e.target.value;
+    setFormData({ ...formData, role: selectedRole });
+    if (selectedRole.toLowerCase() === 'muqaddam') {
+      // Redirect to the dedicated Muqaddam registration page
+      navigate('/muqaddam-register');
+    }
   };
 
   // Step 1: Send OTP
@@ -29,7 +40,7 @@ const GovRegister = () => {
     try {
       const res = await axios.post('http://localhost:5000/api/auth/send-otp', {
         email: formData.email,
-        role: formData.role, // Government employee check in backend
+        role: formData.role,
       });
       setMessage(res.data.message);
       setStep(2);
@@ -84,14 +95,14 @@ const GovRegister = () => {
                 id="role"
                 name="role"
                 value={formData.role}
-                onChange={handleChange}
+                onChange={handleRoleChange}
                 className="w-full border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="CSI">CSI</option>
                 <option value="DSI">DSI</option>
                 <option value="SI">SI</option>
-                <option value="muqaadam">Muqaadams</option>
-                <option value="Workers">Workers</option>
+                <option value="muqaddam">Muqaddam</option>
+                <option value="worker">Worker</option>
               </select>
             </div>
 
@@ -123,7 +134,7 @@ const GovRegister = () => {
               />
             </div>
 
-            {/* New Identifier Field */}
+            {/* Identifier Field */}
             <div>
               <label htmlFor="identifier" className="block text-gray-700 mb-1">Identifier</label>
               <input
