@@ -37,36 +37,35 @@
 
 // module.exports = authMiddleware;
 
-const jwt = require("jsonwebtoken");
-const User = require("../models/User");
+// middleware/authMiddleware.js
+const jwt = require('jsonwebtoken');
+const User = require('../models/User');
+const GovEmployee = require('../models/GovEmployee');
 
 module.exports = async (req, res, next) => {
-    console.log("🔒 Auth Middleware Triggered");
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader)
+      return res.status(401).json({ message: "Authorization header missing" });
 
-    // Extract token from headers
-    const token = req.header("Authorization");
-    if (!token) {
-        console.log("🚨 No token found in headers");
-        return res.status(401).json({ message: "Unauthorized: No token provided" });
+    const token = authHeader.split(" ")[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log("✅ Token Decoded:", decoded);
+
+    let user;
+    // Use the 'role' in the token to decide which collection to query.
+    if (decoded.role === 'user' || decoded.role === 'citizen') {
+      user = await User.findById(decoded.id);
+    } else {
+      user = await GovEmployee.findById(decoded.id);
     }
-
-    try {
-        // Verify token
-        const decoded = jwt.verify(token.replace("Bearer ", ""), process.env.JWT_SECRET);
-        console.log("✅ Token Decoded:", decoded);
-
-        // Find the user in the database
-        const user = await User.findById(decoded.userId);
-        if (!user) {
-            console.log("🚨 No user found with ID:", decoded.userId);
-            return res.status(401).json({ message: "Unauthorized: User not found" });
-        }
-
-        req.user = user; // Attach user to request
-        console.log("✅ User Authenticated:", user.email);
-        next();
-    } catch (error) {
-        console.error("❌ Error verifying token:", error.message);
-        return res.status(401).json({ message: "Invalid or expired token" });
+    if (!user) {
+      return res.status(404).json({ message: "No user found with ID: " + decoded.id });
     }
+    req.user = user;
+    next();
+  } catch (error) {
+    console.error("Auth middleware error:", error);
+    res.status(401).json({ message: "Unauthorized" });
+  }
 };

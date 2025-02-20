@@ -7,6 +7,8 @@ import Register from "./pages/Register";
 import Register2 from "./pages/Register2";
 import { ReportPage } from "./pages/ReportPage";
 import MyImages from "./pages/MyImages";
+import SIDashboard from "./pages/SIDashboard";
+import MuqaddamDashboard from "./pages/MuqaddamDashboard";
 
 function App() {
 	return (
@@ -19,6 +21,8 @@ function App() {
 				<Route path="/register2" element={<Register2 />} />
 				<Route path="/report" element={<ReportPage />} />
 				<Route path="/my-images" element={<MyImages />} />
+				<Route path="/si-dashboard" element={<SIDashboard />} />
+				<Route path="/muqaddam-dashboard" element={<MuqaddamDashboard />} />
 			</Routes>
 		</Router>
 	);

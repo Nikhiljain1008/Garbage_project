@@ -8,6 +8,7 @@ const authRoutes = require("./routes/authRoutes");
 const imageRoutes = require("./routes/imageRoutes"); // Import image routes
 const govEmployeeRoutes = require("./routes/govEmployeeRoutes");
 const complaintRoutes = require("./routes/complaintRoutes");
+const workerRoutes = require("./routes/workerRoutes");
 const path = require("path");
 
 
@@ -26,6 +27,7 @@ app.use("/api/images", imageRoutes);
 app.use('/uploads', express.static('uploads'));
 app.use("/api/govEmployees", govEmployeeRoutes);
 app.use("/api/complaints", complaintRoutes);
+app.use("/api/worker", workerRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

@@ -1,4 +1,6 @@
-// models/GovEmployee.js
+
+
+
 const mongoose = require("mongoose");
 
 const govEmployeeSchema = new mongoose.Schema({
@@ -7,10 +9,12 @@ const govEmployeeSchema = new mongoose.Schema({
   password: { type: String, required: true },
   role: { 
     type: String, 
-    enum: ["CSI", "DSI", "SI", "muqaddam", "worker"],
+    enum: ["CSI", "DSI", "SI", "muqaadam", "worker"],
     required: true 
   },
-  ward: { type: String }, // Applicable for SI and muqaddam
+  ward: { type: String },
+  identifier: { type: String, required: true }
 }, { timestamps: true });
 
+// This creates and exports a Mongoose model named "GovEmployee"
 module.exports = mongoose.model("GovEmployee", govEmployeeSchema);

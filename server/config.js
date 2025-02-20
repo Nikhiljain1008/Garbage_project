@@ -1,8 +1,11 @@
 // config.js
 module.exports = {
-  ALLOWED_GOV_EMAILS: [
-    "shaikhaadilnawaz1@gmail.com",
-    "muqaddam@example.com"
-    // add more allowed emails as needed
-  ]
+	ALLOWED_GOV_EMAILS: [
+		"shaikhaadilnawaz1@gmail.com",
+		"babusha.kolhe22@vit.edu",
+		"aadilnawaz.shaikh22@vit.edu",
+		"kkbabu980@gmail.com",
+		"shravan.kokate22@vit.edu",
+		// add more allowed emails as needed
+	]
 };
