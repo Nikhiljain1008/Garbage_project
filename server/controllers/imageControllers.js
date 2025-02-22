@@ -10,7 +10,7 @@ exports.uploadImage = async (req, res) => {
   console.log("👤 User Object:", req.user);
 
   const { location, description, latitude, longitude } = req.body;
-  const userId = req.user?._id; // Must be set by your auth middleware
+  const userId = req.user?._id; // Set by authentication middleware
 
   if (!req.file) {
     console.log("🚨 No file uploaded");
@@ -24,14 +24,14 @@ exports.uploadImage = async (req, res) => {
     console.log("🚀 Sending image to Flask API for classification...");
     const form = new FormData();
     form.append("image", fs.createReadStream(filePath));
-    // Append latitude and longitude for geolocation-based processing
     form.append("latitude", latitude);
     form.append("longitude", longitude);
 
     const flaskResponse = await axios.post("http://127.0.0.1:5001/predict", form, {
       headers: { ...form.getHeaders() },
-      timeout: 10000 // 10-second timeout
+      timeout: 10000, // 10-second timeout
     });
+
     console.log("✅ Received response from Flask API");
     const classification = flaskResponse.data;
     console.log("🧪 Flask API Response:", classification);
@@ -43,20 +43,20 @@ exports.uploadImage = async (req, res) => {
       return res.status(400).json({ message: "Image does not contain garbage. Not stored." });
     }
 
-    // Create a new complaint record in the complaints collection
+    // Create a new complaint record in the database
     const newComplaint = new Complaint({
-      citizen: userId,            // Reference to the citizen (User _id)
-      imageUrl,                   // File path of the uploaded image
-      location,                   // Location string provided by the user
-      description,                // Complaint description
-      flaskData: classification,  // Classification & geolocation data from Flask API
-      status: "pending"           // Default complaint status
+      citizen: userId, // Reference to the citizen (User _id)
+      imageUrl, // Store relative file path
+      location, // Location string provided by the user
+      description, // Complaint description
+      flaskData: classification, // Classification & geolocation data from Flask API
+      status: "pending", // Default complaint status
     });
 
     const savedComplaint = await newComplaint.save();
     console.log("✅ Complaint saved successfully:", savedComplaint);
 
-    // Optionally, you might choose to delete the file from disk if you store it elsewhere
+    // Optionally, delete the file from disk if storing elsewhere
     // fs.unlinkSync(filePath);
 
     res.status(201).json({ message: "Complaint submitted successfully", complaint: savedComplaint });
@@ -66,12 +66,42 @@ exports.uploadImage = async (req, res) => {
   }
 };
 
+// exports.getUserImages = async (req, res) => {
+//   console.log("📸 Fetching complaints for user:", req.user._id);
+
+//   try {
+//     // Fetch complaints for the logged-in user (citizen)
+//     const complaints = await Complaint.find({ citizen: req.user._id });
+
+//     // Transform imageUrl to include the full URL
+//     const transformedComplaints = complaints.map((c) => {
+//       const complaintObj = c.toObject();
+//       // Ensure correct URL formatting
+//       complaintObj.imageUrl = `${req.protocol}://${req.get("host")}${complaintObj.imageUrl}`;
+//       return complaintObj;
+//     });
+
+//     res.status(200).json({ complaints: transformedComplaints });
+//   } catch (error) {
+//     console.error("❌ Error fetching complaints:", error);
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// };
+
 exports.getUserImages = async (req, res) => {
   console.log("📸 Fetching complaints for user:", req.user._id);
   try {
-    // Here, we fetch complaints for the logged-in user (citizen)
     const complaints = await Complaint.find({ citizen: req.user._id });
-    res.status(200).json({ complaints });
+
+    // Transform the imageUrl to include the full URL
+    const transformedComplaints = complaints.map(c => {
+      return {
+        ...c.toObject(),
+        imageUrl: `${req.protocol}://${req.get("host")}${c.imageUrl}` // Ensure full path
+      };
+    });
+
+    res.status(200).json({ complaints: transformedComplaints });
   } catch (error) {
     console.error("❌ Error fetching complaints:", error);
     res.status(500).json({ message: "Internal server error" });

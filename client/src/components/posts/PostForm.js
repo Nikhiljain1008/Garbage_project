@@ -8,11 +8,12 @@ const PostForm = () => {
     const [longitude, setLongitude] = useState(null);
     const [description, setDescription] = useState("");
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(""); 
+    const [error, setError] = useState("");
     const [preview, setPreview] = useState(null);
 
+
     const fetchCurrentLocation = () => {
-        setError(""); 
+        setError("");
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 async (position) => {
@@ -26,7 +27,7 @@ const PostForm = () => {
                             `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
                         );
                         const data = await response.json();
-                        
+
                         if (data.display_name) {
                             setLocation(data.display_name); // Set real address
                         } else {
@@ -47,7 +48,7 @@ const PostForm = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError(""); 
+        setError("");
 
         if (!image || !location || latitude === null || longitude === null) {
             setError("Please upload an image and fetch location before submitting.");
@@ -97,66 +98,69 @@ const PostForm = () => {
     };
 
     return (
-        <div className="max-w-lg mx-auto p-6 bg-white shadow-md rounded-lg">
-            <h2 className="text-xl font-bold mb-4">Report Garbage</h2>
-            {error && <div className="text-red-500 mb-4">{error}</div>}
-            <form onSubmit={handleSubmit}>
-                <ImageUploader onImageUpload={handleImageUploaded} initialPreview={preview} />
+        <div className="min-h-screen bg-gradient-to-br from-orange-500 via-white to-green-600 p-6">
 
-                <div className="mb-4">
-                    <label className="block mb-2 font-semibold">Location:</label>
-                    <input
-                        type="text"
-                        value={location}
-                        readOnly
-                        className="w-full border p-2 rounded mb-2"
+
+            <div className="max-w-lg mx-auto p-6 bg-white shadow-md rounded-lg">
+                <h2 className="text-xl font-bold mb-4 text-center">Report Garbage</h2>
+                {error && <div className="text-red-500 mb-4">{error}</div>}
+                <form onSubmit={handleSubmit}>
+                    <ImageUploader onImageUpload={handleImageUploaded} initialPreview={preview} />
+
+                    <div className="mb-4">
+                        <label className="block mb-2 font-semibold">Location:</label>
+                        <input
+                            type="text"
+                            value={location}
+                            readOnly
+                            className="w-full border p-2 rounded mb-2"
+                        />
+                        <button
+                            type="button"
+                            className="px-8 py-3 bg-blue-600 text-white font-bold rounded-full shadow-lg transition-all duration-300 transform hover:scale-110 hover:bg-blue-700"
+                            onClick={fetchCurrentLocation}
+                        >
+                            Use Current Location
+                        </button>
+                    </div>
+
+                    <div className="mb-4">
+                        <label className="block mb-2 font-semibold">Latitude:</label>
+                        <input
+                            type="text"
+                            value={latitude || ""}
+                            readOnly
+                            className="w-full border p-2 rounded mb-2"
+                        />
+                    </div>
+
+                    <div className="mb-4">
+                        <label className="block mb-2 font-semibold">Longitude:</label>
+                        <input
+                            type="text"
+                            value={longitude || ""}
+                            readOnly
+                            className="w-full border p-2 rounded mb-2"
+                        />
+                    </div>
+
+                    <textarea
+                        className="w-full p-2 border rounded mt-3"
+                        placeholder="Add an optional description..."
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
                     />
+
                     <button
-                        type="button"
-                        className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600"
-                        onClick={fetchCurrentLocation}
+                        type="submit"
+                        className={`w-full mt-4 py-2 rounded text-white ${loading ? "bg-gray-400" : "bg-blue-500 hover:bg-blue-600"
+                            } transition-all duration-300 transform hover:scale-105`}
+                        disabled={loading}
                     >
-                        Use Current Location
+                        {loading ? "Submitting..." : "Submit"}
                     </button>
-                </div>
-
-                <div className="mb-4">
-                    <label className="block mb-2 font-semibold">Latitude:</label>
-                    <input
-                        type="text"
-                        value={latitude || ""}
-                        readOnly
-                        className="w-full border p-2 rounded mb-2"
-                    />
-                </div>
-
-                <div className="mb-4">
-                    <label className="block mb-2 font-semibold">Longitude:</label>
-                    <input
-                        type="text"
-                        value={longitude || ""}
-                        readOnly
-                        className="w-full border p-2 rounded mb-2"
-                    />
-                </div>
-
-                <textarea
-                    className="w-full p-2 border rounded mt-3"
-                    placeholder="Add an optional description..."
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                />
-
-                <button
-                    type="submit"
-                    className={`w-full mt-4 py-2 rounded text-white ${
-                        loading ? "bg-gray-400" : "bg-blue-500 hover:bg-blue-600"
-                    }`}
-                    disabled={loading}
-                >
-                    {loading ? "Submitting..." : "Submit"}
-                </button>
-            </form>
+                </form>
+            </div>
         </div>
     );
 };

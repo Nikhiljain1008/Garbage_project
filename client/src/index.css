@@ -1,0 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.nav-button {
+    @apply text-white text-sm sm:text-base px-5 py-2 bg-blue-600 rounded-full font-bold shadow-md transition-transform duration-300 hover:scale-110 hover:bg-blue-700;
+}

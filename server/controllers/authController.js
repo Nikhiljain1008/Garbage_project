@@ -20,10 +20,10 @@ function generateOtp() {
 exports.sendOtp = async (req, res) => {
   const { email, role } = req.body;
   if (!email) return res.status(400).json({ message: "Email is required" });
-  
+
   const otp = generateOtp();
   otpStore[email] = { otp, expiresAt: Date.now() + 300000 }; // Valid for 5 minutes
-  
+
   try {
     await sendOTP(email, otp);
     res.status(200).json({ message: "OTP sent successfully" });
@@ -141,3 +141,5 @@ exports.loginUnified = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+

@@ -23,11 +23,11 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model.to(device)
 
 # Load Pune Ward GeoJSON
-with open(r"S:\sem6\hackathon\k2\Garbage_project\Map-Operation\Pune\pune-electoral-wards-2022.geojson", "r", encoding="utf-8") as f:
+with open(r"S:\Project\Garbage-Web\Garbage_project\Map-Operation\Pune\pune-electoral-wards-2022.geojson", "r", encoding="utf-8") as f:
     wards_geojson = json.load(f)
 
 # Load Muqqadam GeoJSON
-with open(r"S:\sem6\hackathon\k2\Garbage_project\Map-Operation\Sukhsagar.geojson", "r", encoding="utf-8") as f:
+with open(r"S:\Project\Garbage-Web\Garbage_project\Map-Operation\Sukhsagar.geojson", "r", encoding="utf-8") as f:
     muqqadam_geojson = json.load(f)
 
 # ----- FLASK APP -----
@@ -61,11 +61,12 @@ def predict():
     garbage_probability = probs[0][1].item() * 100
 
     result = {
-        "clean_street_probability": probs[0][0].item() * 100,
-        "garbage_probability": garbage_probability,
-        "not_street_probability": probs[0][2].item() * 100,
-        "prediction": predicted_label
-    }
+    "clean_street_probability": round(probs[0][0].item() * 100, 2),
+    "garbage_probability": round(garbage_probability, 2),
+    "not_street_probability": round(probs[0][2].item() * 100, 2),
+    "prediction": predicted_label
+}
+
     
     # If garbage probability is greater than 50%, perform ward lookup
     if garbage_probability > 50:

@@ -1,4 +1,8 @@
 /* General styles for the whole app */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 body {
   font-family: Arial, sans-serif;
   background-color: #f4f4f4;
@@ -79,7 +83,8 @@ button:disabled {
   cursor: not-allowed;
 }
 
-input[type="text"], textarea {
+input[type="text"],
+textarea {
   border: 1px solid #ddd;
 }
 

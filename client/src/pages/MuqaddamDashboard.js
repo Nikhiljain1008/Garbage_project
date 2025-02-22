@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
+
 const MuqaddamDashboard = () => {
   const [complaints, setComplaints] = useState([]);
   const [selectedWorker, setSelectedWorker] = useState('');
@@ -44,42 +45,44 @@ const MuqaddamDashboard = () => {
   };
 
   return (
-    <div>
-      <h1>Muqaddam Dashboard</h1>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      {message && <p style={{ color: 'green' }}>{message}</p>}
-      {complaints.length === 0 ? (
-        <p>No complaints assigned to you.</p>
-      ) : (
-        complaints.map((complaint) => (
-          <div key={complaint._id} style={{ border: '1px solid gray', margin: '10px', padding: '10px' }}>
-            <img src={complaint.imageUrl} alt="complaint" style={{ width: '200px' }} />
-            <p>Prediction: {complaint.flaskData.prediction}</p>
-            <p>Ward: {complaint.flaskData.ward_number}</p>
-            <div>
-              <label>Assign Worker: </label>
-              <select value={selectedWorker} onChange={(e) => setSelectedWorker(e.target.value)}>
-                <option value="">Select Worker</option>
-                {workerList.map(worker => (
-                  <option key={worker.id} value={worker.id}>{worker.name}</option>
-                ))}
-              </select>
+    <>
+      <div>
+        <h1>Muqaddam Dashboard</h1>
+        {error && <p style={{ color: 'red' }}>{error}</p>}
+        {message && <p style={{ color: 'green' }}>{message}</p>}
+        {complaints.length === 0 ? (
+          <p>No complaints assigned to you.</p>
+        ) : (
+          complaints.map((complaint) => (
+            <div key={complaint._id} style={{ border: '1px solid gray', margin: '10px', padding: '10px' }}>
+              <img src={complaint.imageUrl} alt="complaint" style={{ width: '200px' }} />
+              <p>Prediction: {complaint.flaskData.prediction}</p>
+              <p>Ward: {complaint.flaskData.ward_number}</p>
+              <div>
+                <label>Assign Worker: </label>
+                <select value={selectedWorker} onChange={(e) => setSelectedWorker(e.target.value)}>
+                  <option value="">Select Worker</option>
+                  {workerList.map(worker => (
+                    <option key={worker.id} value={worker.id}>{worker.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <input
+                  type="text"
+                  placeholder="Worker Category (e.g., garbage collector)"
+                  value={workerCategory}
+                  onChange={(e) => setWorkerCategory(e.target.value)}
+                />
+              </div>
+              <button onClick={() => handleAssignWorker(complaint._id)}>
+                Assign Worker
+              </button>
             </div>
-            <div>
-              <input
-                type="text"
-                placeholder="Worker Category (e.g., garbage collector)"
-                value={workerCategory}
-                onChange={(e) => setWorkerCategory(e.target.value)}
-              />
-            </div>
-            <button onClick={() => handleAssignWorker(complaint._id)}>
-              Assign Worker
-            </button>
-          </div>
-        ))
-      )}
-    </div>
+          ))
+        )}
+      </div>
+    </>
   );
 };
 
