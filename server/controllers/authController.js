@@ -127,6 +127,11 @@ exports.loginUnified = async (req, res) => {
     let govEmployee = await GovEmployee.findOne({ email });
     if (govEmployee) {
       console.log("GovEmployee found:", govEmployee.email);
+
+      if (govEmployee.role === "worker" && govEmployee.status !== "approved") {
+        return res.status(403).json({ message: "Your account is pending approval" });
+      }
+      
       const isMatch = await bcrypt.compare(password, govEmployee.password);
       console.log("GovEmployee bcrypt compare result:", isMatch);
       if (!isMatch) {

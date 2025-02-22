@@ -9,6 +9,7 @@ import { ReportPage } from "./pages/ReportPage";
 import MyImages from "./pages/MyImages";
 import SIDashboard from "./pages/SIDashboard";
 import MuqaddamDashboard from "./pages/MuqaddamDashboard";
+import WorkerDashboard from "./pages/WorkerDashboard";
 
 function App() {
 	return (
@@ -23,6 +24,8 @@ function App() {
 				<Route path="/my-images" element={<MyImages />} />
 				<Route path="/si-dashboard" element={<SIDashboard />} />
 				<Route path="/muqaddam-dashboard" element={<MuqaddamDashboard />} />
+				<Route path="/worker-dashboard" element={<WorkerDashboard />} />
+				
 			</Routes>
 		</Router>
 	);
