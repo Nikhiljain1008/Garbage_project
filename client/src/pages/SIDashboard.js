@@ -213,7 +213,7 @@ const SIDashboard = () => {
       ) : (
         complaints.map((complaint) => (
           <div key={complaint._id} style={{ border: '1px solid #ccc', padding: '10px', marginBottom: '10px' }}>
-            <img src={`/uploads/${complaint.imageUrl}`} alt="Complaint" style={{ width: '200px', marginBottom: '10px' }} />
+            <img src={`${complaint.imageUrl}`} alt="Complaint" style={{ width: '200px', marginBottom: '10px' }} />
             <p><strong>Prediction:</strong> {complaint.flaskData.prediction}</p>
             <p><strong>Garbage Probability:</strong> {complaint.flaskData.garbage_probability}%</p>
             <p><strong>Ward:</strong> {complaint.flaskData.ward_number}</p>
@@ -255,7 +255,7 @@ const SIDashboard = () => {
       ) : (
         forwardedComplaints.map((complaint) => (
           <div key={complaint._id} style={{ border: '1px solid #007bff', padding: '10px', marginBottom: '10px', backgroundColor: '#f0f8ff' }}>
-            <img src={`/uploads/${complaint.imageUrl}`}alt="Complaint" style={{ width: '200px', marginBottom: '10px' }} />
+            <img src={`${complaint.imageUrl}`}alt="Complaint" style={{ width: '200px', marginBottom: '10px' }} />
             <p><strong>Prediction:</strong> {complaint.flaskData.prediction}</p>
             <p><strong>Garbage Probability:</strong> {complaint.flaskData.garbage_probability}%</p>
             <p><strong>Ward:</strong> {complaint.flaskData.ward_number}</p>

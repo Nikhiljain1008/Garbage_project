@@ -132,35 +132,51 @@ const Complaint = require("../models/Complaint");
 //     res.status(500).json({ message: "Error fetching complaints", error: error.message });
 //   }
 // };
-
 exports.getSiComplaints = async (req, res) => {
 	try {
 	  const siIdentifier = req.user.identifier;
 	  const siWard = req.user.ward;
   
-	  // Fetch pending complaints
-	  const pendingComplaints = await Complaint.find({
+	  const complaints = await Complaint.find({
 		"flaskData.SI_no": siIdentifier,
 		"flaskData.ward_number": Number(siWard),
-		status: "pending"
+		status: "pending",
 	  });
   
-	  // Fetch assigned complaints (not pending but still under SI)
-	  const assignedComplaints = await Complaint.find({
-		"flaskData.SI_no": siIdentifier,
-		"flaskData.ward_number": Number(siWard),
-		status: "in progress" // Complaints assigned to Muqaddam but not completed
-	  });
-  
-	  res.json({
-		pendingComplaints,
-		assignedComplaints, // New section for SI
-	  });
+	  res.json({ complaints });
 	} catch (error) {
 	  console.error("Error fetching SI complaints:", error);
 	  res.status(500).json({ message: "Error fetching complaints", error: error.message });
 	}
   };
+// exports.getSiComplaints = async (req, res) => {
+// 	try {
+// 	  const siIdentifier = req.user.identifier;
+// 	  const siWard = req.user.ward;
+  
+// 	  // Fetch pending complaints
+// 	  const pendingComplaints = await Complaint.find({
+// 		"flaskData.SI_no": siIdentifier,
+// 		"flaskData.ward_number": Number(siWard),
+// 		status: "pending"
+// 	  });
+  
+// 	  // Fetch assigned complaints (not pending but still under SI)
+// 	  const assignedComplaints = await Complaint.find({
+// 		"flaskData.SI_no": siIdentifier,
+// 		"flaskData.ward_number": Number(siWard),
+// 		status: "in progress" // Complaints assigned to Muqaddam but not completed
+// 	  });
+  
+// 	  res.json({
+// 		pendingComplaints,
+// 		assignedComplaints, // New section for SI
+// 	  });
+// 	} catch (error) {
+// 	  console.error("Error fetching SI complaints:", error);
+// 	  res.status(500).json({ message: "Error fetching complaints", error: error.message });
+// 	}
+//   };
   
   exports.getSiForwardedComplaints = async (req, res) => {
 	try {
