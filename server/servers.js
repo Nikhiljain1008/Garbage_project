@@ -24,9 +24,12 @@ app.use("/api/auth", authRoutes);
 
 // ✅ Image Upload Routes (Now Handled Separately)
 app.use("/api/images", imageRoutes);
-app.use('/uploads', express.static('uploads'));
+// app.use('/uploads', express.static('uploads'));
 app.use("/api/govEmployees", govEmployeeRoutes);
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
 app.use("/api/complaints", complaintRoutes);
+// app.use('/api', complaintRoutes); 
 app.use("/api/worker", workerRoutes);
 
 const PORT = process.env.PORT || 5000;

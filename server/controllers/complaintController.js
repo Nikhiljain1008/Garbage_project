@@ -106,34 +106,83 @@ const Complaint = require("../models/Complaint");
 // };
 // controllers/complaintController.js
 // controllers/complaintController.js
+// exports.getSiComplaints = async (req, res) => {
+//   try {
+//     // Assume the SI's unique identifier and ward are stored in req.user
+//     const siIdentifier = req.user.identifier;
+//     const siWard = req.user.ward; // Ensure this matches the type of flaskData.ward_number (e.g., Number)
+
+//     // Fetch complaints where both the SI identifier and ward match and status is "pending"
+//     const complaints = await Complaint.find({
+//       "flaskData.SI_no": siIdentifier,
+//       "flaskData.ward_number": Number(siWard),
+//       status: "pending"
+//     });
+
+//     // Transform each complaint's imageUrl from a relative path to a full URL
+//     const transformedComplaints = complaints.map(c => {
+//       const obj = c.toObject();
+//       obj.imageUrl = `${req.protocol}://${req.get("host")}${obj.imageUrl}`;
+//       return obj;
+//     });
+
+//     res.json({ complaints: transformedComplaints });
+//   } catch (error) {
+//     console.error("Error fetching SI complaints:", error);
+//     res.status(500).json({ message: "Error fetching complaints", error: error.message });
+//   }
+// };
+
 exports.getSiComplaints = async (req, res) => {
-  try {
-    // Assume the SI's unique identifier and ward are stored in req.user
-    const siIdentifier = req.user.identifier;
-    const siWard = req.user.ward; // Ensure this matches the type of flaskData.ward_number (e.g., Number)
-
-    // Fetch complaints where both the SI identifier and ward match and status is "pending"
-    const complaints = await Complaint.find({
-      "flaskData.SI_no": siIdentifier,
-      "flaskData.ward_number": Number(siWard),
-      status: "pending"
-    });
-
-    // Transform each complaint's imageUrl from a relative path to a full URL
-    const transformedComplaints = complaints.map(c => {
-      const obj = c.toObject();
-      obj.imageUrl = `${req.protocol}://${req.get("host")}${obj.imageUrl}`;
-      return obj;
-    });
-
-    res.json({ complaints: transformedComplaints });
-  } catch (error) {
-    console.error("Error fetching SI complaints:", error);
-    res.status(500).json({ message: "Error fetching complaints", error: error.message });
-  }
-};
-
-
+	try {
+	  const siIdentifier = req.user.identifier;
+	  const siWard = req.user.ward;
+  
+	  // Fetch pending complaints
+	  const pendingComplaints = await Complaint.find({
+		"flaskData.SI_no": siIdentifier,
+		"flaskData.ward_number": Number(siWard),
+		status: "pending"
+	  });
+  
+	  // Fetch assigned complaints (not pending but still under SI)
+	  const assignedComplaints = await Complaint.find({
+		"flaskData.SI_no": siIdentifier,
+		"flaskData.ward_number": Number(siWard),
+		status: "in progress" // Complaints assigned to Muqaddam but not completed
+	  });
+  
+	  res.json({
+		pendingComplaints,
+		assignedComplaints, // New section for SI
+	  });
+	} catch (error) {
+	  console.error("Error fetching SI complaints:", error);
+	  res.status(500).json({ message: "Error fetching complaints", error: error.message });
+	}
+  };
+  
+  exports.getSiForwardedComplaints = async (req, res) => {
+	try {
+	  const siIdentifier = req.user.identifier;
+  
+	  const forwardedComplaints = await Complaint.find({
+		"flaskData.SI_no": siIdentifier,
+		forwardedBySI: true // Only fetch complaints that SI has forwarded
+	  }).populate("assignedMuqaddam", "name email"); // Populate Muqaddam details
+  
+	  const transformedComplaints = forwardedComplaints.map(c => {
+		const obj = c.toObject();
+		obj.imageUrl = `${req.protocol}://${req.get("host")}${obj.imageUrl}`;
+		return obj;
+	  });
+  
+	  res.json({ forwardedComplaints: transformedComplaints });
+	} catch (error) {
+	  console.error("Error fetching forwarded complaints:", error);
+	  res.status(500).json({ message: "Error fetching forwarded complaints", error: error.message });
+	}
+  };
 
 // SI: Forward a complaint to a Muqaddam
 // controllers/complaintController.js
@@ -230,3 +279,4 @@ exports.completeComplaint = async (req, res) => {
 		res.status(500).json({ message: "Error completing complaint", error: error.message });
 	}
 };
+

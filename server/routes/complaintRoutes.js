@@ -28,6 +28,7 @@ const authMiddleware = require("../middleware/authMiddleware");
 
 // SI endpoints:
 router.get("/si", authMiddleware, complaintController.getSiComplaints);
+router.get("/si/forwarded", authMiddleware, complaintController.getSiForwardedComplaints);
 router.post("/:complaintId/assign-muqaddam", authMiddleware, complaintController.assignMuqaddam);
 
 // Muqaddam endpoints:
@@ -36,5 +37,19 @@ router.post("/:complaintId/assign-worker", authMiddleware, complaintController.a
 
 // Worker endpoint:
 router.post("/:complaintId/complete", authMiddleware, complaintController.completeComplaint);
+router.get("/:imageName", (req, res) => {
+    const imageName = req.params.imageName;
+    const imagePath = path.join(__dirname, "../uploads", imageName); // Ensure path is correct
+
+    console.log("Requested image:", imagePath); // Debugging log
+
+    // Check if the file exists before sending
+    if (fs.existsSync(imagePath)) {
+        res.sendFile(imagePath);
+    } else {
+        console.error("Image not found:", imagePath);
+        res.status(404).json({ error: "Image not found" });
+    }
+});
 
 module.exports = router;
