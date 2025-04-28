@@ -47,6 +47,8 @@ exports.uploadImage = async (req, res) => {
 		const newComplaint = new Complaint({
 			citizen: userId,            // Reference to the citizen (User _id)
 			imageUrl,                   // File path of the uploaded image
+			latitude,
+			longitude,
 			location,                   // Location string provided by the user
 			description,                // Complaint description
 			flaskData: classification,  // Classification & geolocation data from Flask API
