@@ -9,10 +9,13 @@ exports.completeComplaint = async (req, res) => {
     try {
         const complaintId = req.body.complaintId;
         const {
+            complaintLocation,
+            complaintLatitude,
+            complaintLongitude,
             muqaddamLocation,
             muqaddamLatitude,
             muqaddamLongitude,
-            description
+            //description
         } = req.body;
 
         console.log("📩 Request Body:", req.body);
@@ -23,17 +26,20 @@ exports.completeComplaint = async (req, res) => {
             return res.status(400).json({ message: "No Muqaddam image uploaded" });
         }
 
-        const postCleaningImageUrl = `/uploads/${req.file.filename}`;
+        const postCleaningImageUrl = `/completeimages/${req.file.filename}`;
         const filePath = req.file.path;
 
         console.log("🚀 Sending Muqaddam image to Flask API for verification...");
 
         const form = new FormData();
         form.append("image", fs.createReadStream(filePath));
-        form.append("latitude", muqaddamLatitude);
-        form.append("longitude", muqaddamLongitude);
-        form.append("location", muqaddamLocation);
-        form.append("description", description);
+        //form.append("Complaintlocation", complaintLocation);
+        form.append("complaintLatitude", complaintLatitude);
+        form.append("complaintLongitude", complaintLongitude);
+        form.append("muqaddamLatitude", muqaddamLatitude);
+        form.append("muqaddamLongitude", muqaddamLongitude);
+        //form.append("muqqaddamlocation", muqaddamLocation);
+        //form.append("description", description);
 
         const flaskResponse = await axios.post("http://127.0.0.1:5001/verify", form, {
             headers: { ...form.getHeaders() },
@@ -45,10 +51,17 @@ exports.completeComplaint = async (req, res) => {
         console.log("🧪 Flask API Response:", verificationResult);
 
         // Example: Based on Flask API, decide if complaint can be marked as complete
-        if (verificationResult.cleaned_probability < 60) { // Adjust threshold as needed
+        if (verificationResult.garbage_probability > 30) { // Adjust threshold as needed
             console.log("🟡 Area not sufficiently clean. Cannot mark complaint as complete.");
             fs.unlinkSync(filePath); // Remove uploaded file
             return res.status(400).json({ message: "Area not sufficiently clean based on AI verification." });
+        }
+
+        
+        if (!verificationResult.location_verified) {
+          console.log("🟡 Muqaddam location does not match complaint location closely enough.");
+          fs.unlinkSync(filePath); // Remove uploaded file
+          return res.status(400).json({ message: "Muqaddam is not at the correct location based on GPS verification." });
         }
 
         // Update complaint in DB

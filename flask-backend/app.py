@@ -5,6 +5,7 @@ from transformers import CLIPProcessor, CLIPModel
 import io
 import json
 from shapely.geometry import shape, Point
+from geopy.distance import geodesic 
 
 # ----- CONFIGURATION -----
 model_name = "openai/clip-vit-base-patch32"
@@ -109,6 +110,76 @@ def predict():
             result["geo_lookup_error"] = str(e)
     
     return jsonify(result)
+
+
+
+# ---------- NEW ROUTE: /verify ----------
+
+@app.route('/verify', methods=['POST'])
+def verify():
+    # Check that required fields are present
+    
+    required_fields = ['image', 'muqaddamLatitude', 'muqaddamLongitude', 'complaintLatitude', 'complaintLongitude']
+    for field in required_fields:
+        if field not in request.form and field not in request.files:
+            return jsonify({"error": f"{field} is required"}), 400
+
+    # Load image
+    file = request.files['image']
+    try:
+        image = Image.open(io.BytesIO(file.read())).convert("RGB").resize((224, 224))
+    except Exception as e:
+        return jsonify({"error": f"Error processing image: {str(e)}"}), 400
+
+    # Prepare inputs for CLIP
+    inputs = processor(text=prompts, images=image, return_tensors="pt", padding=True)
+    inputs = {k: v.to(device) for k, v in inputs.items()}
+
+    # Model inference
+    with torch.no_grad():
+        outputs = model(**inputs)
+        probs = outputs.logits_per_image.softmax(dim=1)
+
+    # Get classification result
+    pred_idx = torch.argmax(probs, dim=1).item()
+    predicted_label = prompts[pred_idx]
+
+    # Probabilities
+    clean_street_probability = probs[0][0].item() * 100
+    garbage_probability = probs[0][1].item() * 100
+    not_street_probability = probs[0][2].item() * 100
+
+    # Calculate distance between Complaint and Muqaddam points
+    try:
+        muqaddam_lat = float(request.form['muqaddamLatitude'])
+        muqaddam_lon = float(request.form['muqaddamLongitude'])
+        complaint_lat = float(request.form['complaintLatitude'])
+        complaint_lon = float(request.form['complaintLongitude'])
+
+        muqaddam_point = (muqaddam_lat, muqaddam_lon)
+        complaint_point = (complaint_lat, complaint_lon)
+
+        distance_meters = geodesic(muqaddam_point, complaint_point).meters
+
+        # Define a threshold (example: 30 meters)
+        location_verified = distance_meters <= 30
+
+    except Exception as e:
+        return jsonify({"error": f"Error calculating location distance: {str(e)}"}), 400
+
+    verification_result = {
+        "cleaned_probability": clean_street_probability,
+        "garbage_probability": garbage_probability,
+        "not_street_probability": not_street_probability,
+        "prediction": predicted_label,
+        "location_distance_meters": distance_meters,
+        "location_verified": location_verified,
+        "is_area_clean": garbage_probability < 10
+    }
+
+    return jsonify(verification_result)
+
+# ----------
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5001)

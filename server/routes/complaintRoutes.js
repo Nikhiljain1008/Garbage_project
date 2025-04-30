@@ -31,7 +31,7 @@
     // ✅ Setup multer to store files in 'completeimages/' folder
     const completeImageStorage = multer.diskStorage({
         destination: (req, file, cb) => {
-          console.log("📂 Storing file in 'uploads/' directory");
+          console.log("📂 Storing file in 'completeimages/' directory");
           cb(null, "completeimages/");
         },
         filename: (req, file, cb) => {
