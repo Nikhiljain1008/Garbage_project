@@ -114,22 +114,39 @@ def predict():
 
 
 # ---------- NEW ROUTE: /verify ----------
-
+# Fixed verify route with better error handling and debugging
 @app.route('/verify', methods=['POST'])
 def verify():
-    # Check that required fields are present
+    # Debug incoming request
+    print("Received verify request")
+    print("Form data keys:", request.form.keys())
+    print("Files keys:", request.files.keys())
     
+    # Check that required fields are present
     required_fields = ['image', 'muqaddamLatitude', 'muqaddamLongitude', 'complaintLatitude', 'complaintLongitude']
+    missing_fields = []
+    
     for field in required_fields:
-        if field not in request.form and field not in request.files:
-            return jsonify({"error": f"{field} is required"}), 400
+        if field == 'image':
+            if field not in request.files:
+                missing_fields.append(field)
+        else:
+            if field not in request.form:
+                missing_fields.append(field)
+    
+    if missing_fields:
+        error_msg = f"Missing required fields: {', '.join(missing_fields)}"
+        print(f"Error: {error_msg}")
+        return jsonify({"error": error_msg}), 400
 
     # Load image
     file = request.files['image']
     try:
         image = Image.open(io.BytesIO(file.read())).convert("RGB").resize((224, 224))
     except Exception as e:
-        return jsonify({"error": f"Error processing image: {str(e)}"}), 400
+        error_msg = f"Error processing image: {str(e)}"
+        print(f"Error: {error_msg}")
+        return jsonify({"error": error_msg}), 400
 
     # Prepare inputs for CLIP
     inputs = processor(text=prompts, images=image, return_tensors="pt", padding=True)
@@ -151,6 +168,12 @@ def verify():
 
     # Calculate distance between Complaint and Muqaddam points
     try:
+        # Print values for debugging
+        print(f"muqaddamLatitude: {request.form['muqaddamLatitude']}")
+        print(f"muqaddamLongitude: {request.form['muqaddamLongitude']}")
+        print(f"complaintLatitude: {request.form['complaintLatitude']}")
+        print(f"complaintLongitude: {request.form['complaintLongitude']}")
+        
         muqaddam_lat = float(request.form['muqaddamLatitude'])
         muqaddam_lon = float(request.form['muqaddamLongitude'])
         complaint_lat = float(request.form['complaintLatitude'])
@@ -160,12 +183,15 @@ def verify():
         complaint_point = (complaint_lat, complaint_lon)
 
         distance_meters = geodesic(muqaddam_point, complaint_point).meters
+        print(f"Calculated distance: {distance_meters} meters")
 
         # Define a threshold (example: 30 meters)
         location_verified = distance_meters <= 30
 
     except Exception as e:
-        return jsonify({"error": f"Error calculating location distance: {str(e)}"}), 400
+        error_msg = f"Error calculating location distance: {str(e)}"
+        print(f"Error: {error_msg}")
+        return jsonify({"error": error_msg}), 400
 
     verification_result = {
         "cleaned_probability": clean_street_probability,
@@ -174,12 +200,11 @@ def verify():
         "prediction": predicted_label,
         "location_distance_meters": distance_meters,
         "location_verified": location_verified,
-        "is_area_clean": garbage_probability < 10
+        "is_area_clean": garbage_probability < 30  # Changed from 10 to 30 to match Node.js threshold
     }
-
-    return jsonify(verification_result)
-
-# ----------
+    
+    print("Verification result:", verification_result)
+    return jsonify(verification_result)# ----------
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5001)

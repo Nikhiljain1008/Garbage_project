@@ -6,86 +6,129 @@ const fs = require('fs');
 const axios = require('axios');
 
 exports.completeComplaint = async (req, res) => {
-    try {
-        const complaintId = req.body.complaintId;
-        const {
-            complaintLocation,
-            complaintLatitude,
-            complaintLongitude,
-            muqaddamLocation,
-            muqaddamLatitude,
-            muqaddamLongitude,
-            //description
-        } = req.body;
+  try {
+      const complaintId = req.body.complaintId;
+      const {
+          complaintLocation,
+          complaintLatitude,
+          complaintLongitude,
+          muqaddamLocation,
+          muqaddamLatitude,
+          muqaddamLongitude,
+      } = req.body;
 
-        console.log("📩 Request Body:", req.body);
-        console.log("🖼 Uploaded File:", req.file);
+      console.log("📩 Request Body:", req.body);
+      console.log("🖼 Uploaded File:", req.file);
 
-        if (!req.file) {
-            console.log("🚨 No Muqaddam image uploaded");
-            return res.status(400).json({ message: "No Muqaddam image uploaded" });
-        }
+      if (!req.file) {
+          console.log("🚨 No Muqaddam image uploaded");
+          return res.status(400).json({ message: "No Muqaddam image uploaded" });
+      }
 
-        const postCleaningImageUrl = `/completeimages/${req.file.filename}`;
-        const filePath = req.file.path;
+      const postCleaningImageUrl = `/completeimages/${req.file.filename}`;
+      const filePath = req.file.path;
 
-        console.log("🚀 Sending Muqaddam image to Flask API for verification...");
+      console.log("🚀 Sending Muqaddam image to Flask API for verification...");
 
-        const form = new FormData();
-        form.append("image", fs.createReadStream(filePath));
-        //form.append("Complaintlocation", complaintLocation);
-        form.append("complaintLatitude", complaintLatitude);
-        form.append("complaintLongitude", complaintLongitude);
-        form.append("muqaddamLatitude", muqaddamLatitude);
-        form.append("muqaddamLongitude", muqaddamLongitude);
-        //form.append("muqqaddamlocation", muqaddamLocation);
-        //form.append("description", description);
+      // Create FormData with proper field names and types
+      const form = new FormData();
+      form.append("image", fs.createReadStream(filePath));
+      
+      // Ensure all coordinates are converted to strings
+      form.append("complaintLatitude", String(complaintLatitude));
+      form.append("complaintLongitude", String(complaintLongitude));
+      form.append("muqaddamLatitude", String(muqaddamLatitude));
+      form.append("muqaddamLongitude", String(muqaddamLongitude));
 
-        const flaskResponse = await axios.post("http://127.0.0.1:5001/verify", form, {
-            headers: { ...form.getHeaders() },
-            timeout: 10000 // 10 seconds
-        });
+      // Debug log the form data
+      console.log("📦 Form data being sent:", {
+          complaintLatitude,
+          complaintLongitude,
+          muqaddamLatitude,
+          muqaddamLongitude
+      });
 
-        console.log("✅ Received response from Flask API for verification");
-        const verificationResult = flaskResponse.data;
-        console.log("🧪 Flask API Response:", verificationResult);
+      try {
+          const flaskResponse = await axios.post("http://127.0.0.1:5001/verify", form, {
+              headers: { ...form.getHeaders() },
+              timeout: 30000 // Increased to 30 seconds for image processing
+          });
+          
+          console.log("✅ Received response from Flask API for verification");
+          const verificationResult = flaskResponse.data;
+          console.log("🧪 Flask API Response:", verificationResult);
 
-        // Example: Based on Flask API, decide if complaint can be marked as complete
-        if (verificationResult.garbage_probability > 30) { // Adjust threshold as needed
-            console.log("🟡 Area not sufficiently clean. Cannot mark complaint as complete.");
-            fs.unlinkSync(filePath); // Remove uploaded file
-            return res.status(400).json({ message: "Area not sufficiently clean based on AI verification." });
-        }
+          // Example: Based on Flask API, decide if complaint can be marked as complete
+          if (verificationResult.garbage_probability > 30) { // Adjust threshold as needed
+              console.log("🟡 Area not sufficiently clean. Cannot mark complaint as complete.");
+              fs.unlinkSync(filePath); // Remove uploaded file
+              return res.status(400).json({ message: "Area not sufficiently clean based on AI verification." });
+          }
 
-        
-        if (!verificationResult.location_verified) {
-          console.log("🟡 Muqaddam location does not match complaint location closely enough.");
-          fs.unlinkSync(filePath); // Remove uploaded file
-          return res.status(400).json({ message: "Muqaddam is not at the correct location based on GPS verification." });
-        }
+          if (!verificationResult.location_verified) {
+              console.log("🟡 Muqaddam location does not match complaint location closely enough.");
+              fs.unlinkSync(filePath); // Remove uploaded file
+              return res.status(400).json({ 
+                  message: "Muqaddam is not at the correct location based on GPS verification.",
+                  distance: verificationResult.location_distance_meters
+              });
+          }
 
-        // Update complaint in DB
-        const updatedComplaint = await Complaint.findByIdAndUpdate(
-            complaintId,
-            {
-                postCleaningImage: postCleaningImageUrl,
-                status: "completed",
-                muqaddamLocation,
-                muqaddamLatitude,
-                muqaddamLongitude,
-                muqaddamVerification: verificationResult // Save Flask verification result
-            },
-            { new: true }
-        );
+          // Update complaint in DB
+          const updatedComplaint = await Complaint.findByIdAndUpdate(
+              complaintId,
+              {
+                  postCleaningImage: postCleaningImageUrl,
+                  status: "completed",
+                  muqaddamLocation,
+                  muqaddamLatitude,
+                  muqaddamLongitude,
+                  muqaddamVerification: verificationResult // Save Flask verification result
+              },
+              { new: true }
+          );
 
-        console.log("✅ Complaint updated successfully:", updatedComplaint);
+          console.log("✅ Complaint updated successfully:", updatedComplaint);
 
-        res.json({ message: "Complaint marked as completed after verification", complaint: updatedComplaint });
+          res.json({ 
+              message: "Complaint marked as completed after verification", 
+              complaint: updatedComplaint 
+          });
+          
+      } catch (axiosError) {
+          console.error("❌ Flask API Error:", axiosError.message);
+          
+          // More detailed error logging
+          if (axiosError.response) {
+              // The request was made and the server responded with a status code
+              console.error("Response data:", axiosError.response.data);
+              console.error("Response status:", axiosError.response.status);
+              console.error("Response headers:", axiosError.response.headers);
+              return res.status(axiosError.response.status).json({ 
+                  message: "Flask API validation failed", 
+                  error: axiosError.response.data
+              });
+          } else if (axiosError.request) {
+              // The request was made but no response was received
+              console.error("Request made but no response received");
+              return res.status(500).json({ 
+                  message: "Cannot connect to verification service", 
+                  error: "No response from Flask API - please check if it's running"
+              });
+          } else {
+              // Something happened in setting up the request
+              console.error("Error setting up request:", axiosError.message);
+              return res.status(500).json({ 
+                  message: "Error setting up verification request", 
+                  error: axiosError.message
+              });
+          }
+      }
 
-    } catch (error) {
-        console.error("❌ Error completing complaint:", error);
-        res.status(500).json({ message: "Error completing complaint", error: error.message });
-    }
+  } catch (error) {
+      console.error("❌ Error completing complaint:", error);
+      res.status(500).json({ message: "Error completing complaint", error: error.message });
+  }
 };
 
 
