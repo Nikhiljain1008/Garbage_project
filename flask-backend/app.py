@@ -28,7 +28,7 @@ with open(r"C:\Users\91738\Downloads\Techathon\Garbage_final\Garbage_project\Map
     wards_geojson = json.load(f)
 
 # Load Muqqadam GeoJSON
-with open(r"C:\Users\91738\Downloads\Techathon\Garbage_final\Garbage_project\Map-Operation\Sukhsagar.geojson", "r", encoding="utf-8") as f:
+with open(r"C:\Users\91738\Downloads\Techathon\Garbage_final\Garbage_project\Map-Operation\bibvewadi-ward\bibvewadi-ward-map.geojson", "r", encoding="utf-8") as f:
     muqqadam_geojson = json.load(f)
 
 # ----- FLASK APP -----
@@ -85,9 +85,9 @@ def predict():
                     result["ward_name"] = ward_name
                     result["ward_number"] = wardnum
                     break
-
+            print(ward_name)
             # Step 2: If the ward is "Sukhsagarnagar - Rajiv Gandhinagar", check for Muqqadam
-            if ward_name == "Sukhsagarnagar - Rajiv Gandhinagar":
+            if ward_name == "Upper Super Indiranagar":
                 found_muqqadam = False
                 for feature in muqqadam_geojson["features"]:
                     muqqadam_name = feature["properties"].get("Name")
@@ -101,9 +101,9 @@ def predict():
                             found_muqqadam = True
                             break
                 if not found_muqqadam:
-                    print("Coordinate is not in any Muqqadam region within Sukhsagar.")
+                    print("Coordinate is not in any Muqqadam region within Bibvewadi.")
             else:
-                print("Coordinate is not in Sukhsagar.")
+                print("Coordinate is not in bibvewadi.")
         except Exception as e:
             # Log the error and optionally include error details in the result
             print("Error during geolocation lookup:", e)

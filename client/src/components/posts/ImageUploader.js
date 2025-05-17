@@ -80,13 +80,13 @@ const ImageUploader = ({ onImageUpload, initialPreview }) => {
 
       {/* Action Buttons */}
       <div className="flex gap-4 mb-3">
-        <button
+        {/* <button
           type="button"
           onClick={() => setMode("upload")}
           className={`px-4 py-2 rounded ${mode === "upload" ? "bg-blue-600 text-white" : "bg-gray-300 hover:bg-gray-400"}`}
         >
           Upload Image
-        </button>
+        </button> */}
 
         <button
           type="button"

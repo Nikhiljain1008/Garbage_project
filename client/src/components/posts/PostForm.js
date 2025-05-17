@@ -97,7 +97,7 @@ const PostForm = () => {
     };
 
     return (
-        <div className="max-w-lg mx-auto p-6 bg-white shadow-md rounded-lg">
+        <div className="max-w-3xl mx-auto p-6 bg-white rounded-lg">
             <h2 className="text-xl font-bold mb-4">Report Garbage</h2>
             {error && <div className="text-red-500 mb-4">{error}</div>}
             <form onSubmit={handleSubmit}>

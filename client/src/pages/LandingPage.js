@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 
 export const LandingPage = () => {
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-300 via-white to-blue-500 p-6">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-500 via-white to-green-500 p-6">
             {/* Animated Card Container */}
             <motion.div
                 initial={{ opacity: 0, y: -20 }}

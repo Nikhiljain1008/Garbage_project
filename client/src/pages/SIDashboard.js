@@ -200,67 +200,158 @@ const SIDashboard = () => {
   };
 
   return (
-    <div style={{ padding: '20px' }}>
-      <h1>SI Dashboard</h1>
-      <p><strong>Your Ward:</strong> {siWard} | <strong>Your Identifier:</strong> {siIdentifier}</p>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      {message && <p style={{ color: 'green' }}>{message}</p>}
+    <div className="max-w-4xl mx-auto p-6 font-sans text-gray-800 leading-relaxed">
+      {/* <h1 className="text-3xl font-semibold mb-4 text-gray-900">SI Dashboard</h1> */}
+      <h1 className="text-3xl font-bold mb-7 text-gray-900">SI Dashboard</h1>
+      <p className="text-base mb-6">
+        <strong className="font-semibold">Your Ward:</strong> {siWard} {' | '}
+        <strong className="font-semibold">Your Identifier:</strong> {siIdentifier}
+      </p>
+
+      {/* Summary Bar */}
+      <div className="flex flex-wrap gap-2 mb-8 text-sm">
+        <div className="bg-blue-50 text-blue-700 border border-blue-100 rounded-lg px-3 py-1">
+          <span className="font-semibold">Total Complaints:</span>{' '}
+          {complaints.length + forwardedComplaints.length}
+        </div>
+        <div className="bg-yellow-50 text-yellow-700 border border-yellow-100 rounded-lg px-3 py-1">
+          <span className="font-semibold">Pending:</span> {complaints.length}
+        </div>
+        <div className="bg-green-50 text-green-700 border border-green-100 rounded-lg px-3 py-1">
+          <span className="font-semibold">Forwarded:</span> {forwardedComplaints.length}
+        </div>
+        <div className="bg-purple-50 text-purple-700 border border-purple-100 rounded-lg px-3 py-1">
+          <span className="font-semibold">Muqaddams Available:</span> {muqaddams.length}
+        </div>
+      </div>
+
+
+
+      {error && (
+        <p className="bg-red-100 text-red-700 font-semibold p-3 rounded mb-6 border border-red-300">
+          {error}
+        </p>
+      )}
+
+      {message && (
+        <p className="bg-green-100 text-green-700 font-semibold p-3 rounded mb-6 border border-green-300">
+          {message}
+        </p>
+      )}
 
       {/* Pending Complaints Section */}
-      <h2>Pending Complaints</h2>
+      <h2 className="text-2xl font-semibold border-b-4 border-blue-600 pb-2 mb-6 text-blue-600">
+        Pending Complaints
+      </h2>
+
       {complaints.length === 0 ? (
         <p>No pending complaints.</p>
       ) : (
         complaints.map((complaint) => (
-          <div key={complaint._id} style={{ border: '1px solid #ccc', padding: '10px', marginBottom: '10px' }}>
-            <img src={`${complaint.imageUrl}`} alt="Complaint" style={{ width: '200px', marginBottom: '10px' }} />
-            <p><strong>Prediction:</strong> {complaint.flaskData.prediction}</p>
-            <p><strong>Garbage Probability:</strong> {complaint.flaskData.garbage_probability}%</p>
-            <p><strong>Ward:</strong> {complaint.flaskData.ward_number}</p>
-            <div style={{ marginBottom: '10px' }}>
-              <label><strong>Assign to Muqaddam:</strong></label>
-              <select
-                value={selectedMuqaddam}
-                onChange={(e) => setSelectedMuqaddam(e.target.value)}
-                style={{ marginLeft: '10px' }}
+          <div
+            key={complaint._id}
+            className="flex gap-6 p-5 mb-6 bg-white rounded-lg shadow-sm border border-gray-300"
+          >
+            <img
+              src={complaint.imageUrl}
+              alt="Complaint"
+              className="w-56 h-36 object-cover rounded-md flex-shrink-0"
+            />
+            <div className="flex-1">
+              <p className="mb-2 text-base">
+                <span className="font-semibold text-gray-700">Prediction:</span>{' '}
+                {complaint.flaskData.prediction}
+              </p>
+              <p className="mb-2 text-base font-semibold text-gray-800">
+                Garbage Probability:{" "}
+                <span className="bg-yellow-100 text-yellow-800 px-1.5 py-0.5 rounded font-semibold text-sm">
+                  {complaint.flaskData.garbage_probability}%
+                </span>
+              </p>
+
+              <p className="mb-4 text-base font-semibold text-gray-800">
+                Ward:{" "}
+                <span className="bg-blue-100 text-blue-800 px-2.5 py-0.5 rounded font-semibold text-sm">
+                  {complaint.flaskData.ward_number}
+                </span>
+              </p>
+
+
+              <div className="mb-4">
+                <label className="block font-semibold text-gray-700 mb-1">
+                  Assign to Muqaddam:
+                </label>
+                <select
+                  value={selectedMuqaddam}
+                  onChange={(e) => setSelectedMuqaddam(e.target.value)}
+                  className="w-full max-w-xs p-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Select Muqaddam</option>
+                  {muqaddams.map((muq) => (
+                    <option key={muq._id} value={muq._id}>
+                      {muq.name} ({muq.identifier})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="mb-4">
+                <input
+                  type="text"
+                  placeholder="Enter instructions (optional)"
+                  value={siInstructions}
+                  onChange={(e) => setSiInstructions(e.target.value)}
+                  className="w-full max-w-md p-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <button
+                onClick={() => handleAssignMuqaddam(complaint._id)}
+                className="px-4 py-1.5 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 transition-colors duration-300"
               >
-                <option value="">Select Muqaddam</option>
-                {muqaddams.map((muq) => (
-                  <option key={muq._id} value={muq._id}>
-                    {muq.name} ({muq.identifier})
-                  </option>
-                ))}
-              </select>
+                Forward Complaint to Muqaddam
+              </button>
             </div>
-            <div style={{ marginBottom: '10px' }}>
-              <input
-                type="text"
-                placeholder="Enter instructions (optional)"
-                value={siInstructions}
-                onChange={(e) => setSiInstructions(e.target.value)}
-                style={{ padding: '5px' }}
-              />
-            </div>
-            <button onClick={() => handleAssignMuqaddam(complaint._id)}>
-              Forward Complaint to Muqaddam
-            </button>
           </div>
         ))
       )}
 
       {/* Forwarded Complaints Section */}
-      <h2>Forwarded Complaints</h2>
+      <h2 className="text-2xl font-semibold border-b-4 border-blue-600 pb-2 mb-6 text-blue-600">
+        Forwarded Complaints
+      </h2>
+
       {forwardedComplaints.length === 0 ? (
         <p>No forwarded complaints.</p>
       ) : (
         forwardedComplaints.map((complaint) => (
-          <div key={complaint._id} style={{ border: '1px solid #007bff', padding: '10px', marginBottom: '10px', backgroundColor: '#f0f8ff' }}>
-            <img src={`${complaint.imageUrl}`}alt="Complaint" style={{ width: '200px', marginBottom: '10px' }} />
-            <p><strong>Prediction:</strong> {complaint.flaskData.prediction}</p>
-            <p><strong>Garbage Probability:</strong> {complaint.flaskData.garbage_probability}%</p>
-            <p><strong>Ward:</strong> {complaint.flaskData.ward_number}</p>
-            <p><strong>Status:</strong> {complaint.status}</p>
-            <p></p>
+          <div
+            key={complaint._id}
+            className="flex gap-6 p-5 mb-6 bg-blue-50 rounded-lg shadow-sm border border-blue-400"
+          >
+            <img
+              src={complaint.imageUrl}
+              alt="Complaint"
+              className="w-56 h-36 object-cover rounded-md flex-shrink-0"
+            />
+            <div className="flex-1">
+              <p className="mb-2 text-base">
+                <span className="font-semibold text-gray-700">Prediction:</span>{' '}
+                {complaint.flaskData.prediction}
+              </p>
+              <p className="mb-2 text-base">
+                <span className="font-semibold text-gray-700">Garbage Probability:</span>{' '}
+                {complaint.flaskData.garbage_probability}%
+              </p>
+              <p className="mb-2 text-base">
+                <span className="font-semibold text-gray-700">Ward:</span>{' '}
+                {complaint.flaskData.ward_number}
+              </p>
+              <p className="text-base">
+                <span className="font-semibold text-gray-700">Status:</span>{' '}
+                {complaint.status}
+              </p>
+            </div>
           </div>
         ))
       )}

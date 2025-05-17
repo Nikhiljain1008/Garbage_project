@@ -1,5 +1,10 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
 /* General styles for the whole app */
-body {
+/* body {
   font-family: Arial, sans-serif;
   background-color: #f4f4f4;
   margin: 0;
@@ -23,10 +28,10 @@ h3 {
   max-width: 800px;
   margin: 0 auto;
   padding: 20px;
-}
+} */
 
 /* Styles for the PostForm component */
-form {
+/* form {
   background-color: white;
   padding: 20px;
   border-radius: 8px;
@@ -81,19 +86,19 @@ button:disabled {
 
 input[type="text"], textarea {
   border: 1px solid #ddd;
-}
+} */
 
 /* Image preview styling */
-#image-preview {
+/* #image-preview {
   display: block;
   margin-top: 15px;
   max-width: 100%;
   max-height: 300px;
   object-fit: cover;
-}
+} */
 
 /* Location input styling */
-.location-container {
+/* .location-container {
   display: flex;
   align-items: center;
 }
@@ -105,10 +110,10 @@ input[type="text"], textarea {
 
 .location-container button {
   width: auto;
-}
+} */
 
 /* For mobile responsiveness */
-@media (max-width: 768px) {
+/* @media (max-width: 768px) {
   .container {
     padding: 10px;
   }
@@ -116,4 +121,4 @@ input[type="text"], textarea {
   form {
     padding: 15px;
   }
-}
+} */
